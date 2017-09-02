@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # FileDownloader [![Build Status](https://api.travis-ci.org/punitpatel214/FileDownloader.svg?branch=master)](https://api.travis-ci.org/punitpatel214/FileDownloader)
+=======
+# FileDownloader
+>>>>>>> 6b5b35d... FileDownloader-1:Provide Basic File Download functionality
 Java File Downloader, download File using HttpURLConnection of Java
 
 ### Features
