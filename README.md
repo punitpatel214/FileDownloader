@@ -1,4 +1,4 @@
-# FileDownloader
+# FileDownloader [![Build Status](https://api.travis-ci.org/punitpatel214/FileDownloader.svg?branch=master)](https://api.travis-ci.org/punitpatel214/FileDownloader)
 Java File Downloader, download File using HttpURLConnection of Java
 
 ### Features
