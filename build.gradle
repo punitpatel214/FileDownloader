@@ -1,0 +1,49 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+sourceCompatibility = 1.8
+
+jar {
+    baseName = 'file-downloader'
+    version = '1.0'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile("org.springframework:spring-context:4.3.3.RELEASE")
+    compile("log4j:log4j:1.2.14")
+    compile("org.slf4j:slf4j-api:1.7.21")
+    compile("org.slf4j:jcl-over-slf4j:1.7.21")
+    compile("ch.qos.logback:logback-classic:1.1.7")
+    compile("ch.qos.logback:logback-core:1.1.7")
+    compile("org.apache.commons:commons-lang3:3.1")
+
+    testCompile("junit:junit:4.12")
+    testCompile("org.mockito:mockito-core:1.9.5")
+    testCompile("org.springframework:spring-test:4.3.3.RELEASE")
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.1'
+}
+
+//create a single Jar with all dependencies
+task createExecutableJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'File Downloader',
+                'Implementation-Version': '1.0',
+                'Main-Class': 'com.arkaya.filedownloader.FileDownloaderMain'
+    }
+    baseName = project.name + '-exe'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+build.finalizedBy(createExecutableJar)
+
+defaultTasks "clean", "build"
