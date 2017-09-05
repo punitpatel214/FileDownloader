@@ -48,9 +48,26 @@ public class FileDownloadTaskHandler {
         executorService.execute(fileDownloadTask);
         response.setFileDownloadStatus(FileDownloadStatus.INITIATE)
                 .setResponseMessage(FileDownloadStatus.INITIATE.getMessage());
+        postProcessor(httpFileDownloadRequest, fileDownloadInfoDetail);
     }
 
+    private void postProcessor(HttpFileDownloadRequest httpFileDownloadRequest, FileDownloadInfoDetail fileDownloadInfoDetail) {
+        fileDownloadInfoDetail.registerFileDownloadListener(fileDownloadEvent -> {
+            switch (fileDownloadEvent.getFileDownloadStatus()) {
+                case COMPLETE:
+                    remove(httpFileDownloadRequest);
+                    break;
+                case FAIL:
+                    remove(httpFileDownloadRequest);
+                    break;
+            }
+        });
+    }
 
+    public FileDownloadInfo remove(HttpFileDownloadRequest httpFileDownloadRequest) {
+        String partialFileName = httpFileDownloadRequest.getAdditionalProperty(FileDownloadKeyConstant.PARTIAL_FILE_NAME);
+        return partialFileNameToTaskMap.remove(partialFileName);
+    }
 
 
 }

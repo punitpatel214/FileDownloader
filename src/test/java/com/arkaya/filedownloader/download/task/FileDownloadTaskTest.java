@@ -16,6 +16,7 @@ public class FileDownloadTaskTest {
 
     private FileDownloadTask fileDownloadTask;
     private String fileLocation;
+
     @Before
     public void setUp() throws Exception {
         this.fileLocation = File.separator + "tmp";
