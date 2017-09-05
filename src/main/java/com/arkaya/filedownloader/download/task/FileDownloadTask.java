@@ -2,6 +2,7 @@ package com.arkaya.filedownloader.download.task;
 
 
 import com.arkaya.filedownloader.constant.FileDownloadStatus;
+import com.arkaya.filedownloader.download.FileDownloadEvent;
 import com.arkaya.filedownloader.download.constant.FileDownloadKeyConstant;
 import com.arkaya.filedownloader.download.http.HttpURLConnectionUtil;
 import com.arkaya.filedownloader.download.util.FileDownloadUtil;
@@ -17,12 +18,10 @@ import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 public class FileDownloadTask implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileDownloadTask.class);
-    private static final int BUFFER_SIZE = 4896;
+    private static final int BUFFER_SIZE = 489600;
     private final String partialFileName;
     private final long fileSize;
     private final String url;
@@ -52,6 +51,7 @@ public class FileDownloadTask implements Runnable {
                     Files.move(partialFilePath, downloadFilePath);
                     LOGGER.debug("File {} download completed", downloadFilePath);
                     changeStatus(FileDownloadStatus.COMPLETE);
+                    notifyListeners(new FileDownloadEvent(FileDownloadStatus.COMPLETE, fileSize, partFileSize));
                     break;
                 }
                 long startByteRange = partFileSize;
@@ -61,15 +61,21 @@ public class FileDownloadTask implements Runnable {
                 }
                 partFileSize = endByteRange;
                 downloadFile(startByteRange, endByteRange);
+                notifyListeners(new FileDownloadEvent(FileDownloadStatus.DOWNLOADING, fileSize, partFileSize));
             }
         } catch (Exception e) {
-            LOGGER.error("Error while download File",e);
+            LOGGER.error("Error while download File", e);
             changeStatus(FileDownloadStatus.FAIL);
+            notifyListeners(new FileDownloadEvent(FileDownloadStatus.FAIL, fileSize, 0));
         }
     }
 
     private void changeStatus(FileDownloadStatus fileDownloadStatus) {
         fileDownloadInfo.changeFileDownloadStatus(fileDownloadStatus);
+    }
+
+    private void notifyListeners(FileDownloadEvent fileDownloadEvent) {
+        fileDownloadInfo.getFileDownloadListenerList().forEach(fileDownloadListener -> fileDownloadListener.onDownloadingFile(fileDownloadEvent));
     }
 
     private void downloadFile(long startByteRange, long endByteRange) throws IOException {

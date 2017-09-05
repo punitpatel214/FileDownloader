@@ -2,8 +2,11 @@
 <configuration>
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file> file-downloader.log </file>
+        <file>file-downloader.log </file>
         <append>true</append>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%d %m%n</Pattern>
+        </encoder>
     </appender>
 
     <logger name="ch.qos" level="WARN"/>

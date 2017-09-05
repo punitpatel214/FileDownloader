@@ -2,6 +2,7 @@ package com.arkaya.filedownloader.cli;
 
 import com.arkaya.filedownloader.constant.FileDownloadStatus;
 import com.arkaya.filedownloader.download.constant.FileDownloadKeyConstant;
+import com.arkaya.filedownloader.download.task.FileDownloadInfo;
 import com.arkaya.filedownloader.download.task.FileDownloadTaskHandler;
 import com.arkaya.filedownloader.request.http.HttpFileDownloadRequest;
 import com.arkaya.filedownloader.response.FileDownloadResponse;
@@ -11,9 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
+import javax.annotation.PreDestroy;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Component
 public class FileDownloadCLIExecutor {
@@ -23,6 +27,17 @@ public class FileDownloadCLIExecutor {
 
     @Autowired
     private FileDownloadTaskHandler fileDownloadTaskHandler;
+
+    private final ExecutorService executorService;
+
+    public FileDownloadCLIExecutor() {
+        this.executorService = Executors.newSingleThreadExecutor();
+    }
+
+    @PreDestroy
+    public void destroy() {
+        this.executorService.shutdown();
+    }
 
     public void execute() {
         Scanner scanner = new Scanner(System.in);
@@ -53,9 +68,13 @@ public class FileDownloadCLIExecutor {
     }
 
     private void startProgressBar(HttpFileDownloadRequest httpFileDownloadRequest) {
+        FileDownloadProgressbar fileDownloadProgressbar = new FileDownloadProgressbar();
         String partialFileName = httpFileDownloadRequest.getAdditionalProperty(FileDownloadKeyConstant.PARTIAL_FILE_NAME);
         fileDownloadTaskHandler.getFileDownloadTask(partialFileName)
-                .ifPresent(fileDownloadInfo -> new FileDownloadProgressbar(fileDownloadInfo).startProgressBar());
+                .ifPresent((FileDownloadInfo fileDownloadInfo) -> {
+                    fileDownloadInfo.registerFileDownloadListener(fileDownloadProgressbar);
+                    executorService.submit(fileDownloadProgressbar);
+                });
     }
 
     private boolean isValidFileLocation(String fileLocation) {
